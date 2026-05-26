@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cyber Heroes – Review Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #7EC8E3;
+    --cloud: #ffffff;
+    --sun: #FFD166;
+    --green: #06D6A0;
+    --red: #EF476F;
+    --purple: #9B5DE5;
+    --orange: #FF9F1C;
+    --dark: #1a1a2e;
+    --card: #ffffffee;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(180deg, #a8edff 0%, #d6f5e3 100%) fixed;
+    background-color: #a8edff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Floating clouds */
+  .clouds {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cloud {
+    position: absolute;
+    background: white;
+    border-radius: 50px;
+    opacity: 0.7;
+    animation: floatCloud linear infinite;
+  }
+  .cloud::before, .cloud::after {
+    content: '';
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+  }
+  .cloud:nth-child(1) { width:120px; height:40px; top:40px; animation-duration:35s; animation-delay:-5s; }
+  .cloud:nth-child(2) { width:80px; height:28px; top:80px; animation-duration:28s; animation-delay:-12s; }
+  .cloud:nth-child(3) { width:160px; height:50px; top:20px; animation-duration:42s; animation-delay:-20s; }
+  .cloud:nth-child(1)::before { width:60px; height:60px; top:-30px; left:15px; }
+  .cloud:nth-child(1)::after  { width:40px; height:40px; top:-20px; left:55px; }
+  .cloud:nth-child(2)::before { width:40px; height:40px; top:-20px; left:10px; }
+  .cloud:nth-child(2)::after  { width:30px; height:30px; top:-15px; left:35px; }
+  .cloud:nth-child(3)::before { width:80px; height:80px; top:-40px; left:20px; }
+  .cloud:nth-child(3)::after  { width:60px; height:60px; top:-30px; left:75px; }
+
+  @keyframes floatCloud {
+    from { transform: translateX(-200px); }
+    to   { transform: translateX(110vw); }
+  }
+
+  /* Stars */
+  .star {
+    position: fixed;
+    font-size: 1.5rem;
+    animation: twinkle 2s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity:0.3; transform:scale(1); }
+    50% { opacity:1; transform:scale(1.3); }
+  }
+
+  /* Main wrapper */
+  #app {
+    position: relative;
+    z-index: 10;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  /* Header */
+  header {
+    text-align: center;
+    padding: 24px 0 16px;
+  }
+  header .emoji-row {
+    font-size: 2.8rem;
+    margin-bottom: 6px;
+    animation: bounce 1.5s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.4rem;
+    color: var(--dark);
+    text-shadow: 3px 3px 0 var(--sun);
+    letter-spacing: 1px;
+  }
+  header p {
+    color: #3a3a5c;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    background: #ffffffaa;
+    border-radius: 20px;
+    height: 16px;
+    margin: 16px 0 8px;
+    overflow: hidden;
+    border: 2px solid #ffffffcc;
+  }
+  .progress-bar {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--green), var(--sky));
+    transition: width 0.5s cubic-bezier(.4,2,.6,1);
+  }
+  .progress-label {
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #3a3a5c;
+    margin-bottom: 16px;
+  }
+
+  /* Score badge */
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--sun);
+    border-radius: 30px;
+    padding: 6px 16px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    color: var(--dark);
+    box-shadow: 0 3px 0 #e5a800;
+    float: right;
+    margin-top: -8px;
+  }
+
+  /* Section title */
+  .section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--purple);
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    padding: 5px 16px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    box-shadow: 0 3px 0 #7a3db8;
+  }
+
+  /* Card */
+  .card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 24px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+    border: 3px solid #ffffff;
+    animation: popIn 0.4s cubic-bezier(.4,2,.6,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+  }
+
+  .question-text {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 16px;
+    line-height: 1.4;
+  }
+  .question-num {
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.95rem;
+    color: var(--purple);
+    margin-bottom: 6px;
+  }
+
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option-btn {
+    background: #f0f4ff;
+    border: 3px solid #d0d8ff;
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--dark);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .option-btn:hover:not(:disabled) {
+    background: #e0e8ff;
+    border-color: var(--purple);
+    transform: translateX(4px);
+  }
+  .option-btn.correct {
+    background: #d4fce8;
+    border-color: var(--green);
+    color: #086b4a;
+  }
+  .option-btn.wrong {
+    background: #ffe0e8;
+    border-color: var(--red);
+    color: #a0003a;
+  }
+  .option-btn .opt-icon { font-size: 1.3rem; }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.98rem;
+    display: none;
+    animation: popIn 0.3s ease;
+  }
+  .feedback.show { display: flex; align-items: center; gap: 8px; }
+  .feedback.correct { background: #d4fce8; color: #086b4a; border: 2px solid var(--green); }
+  .feedback.wrong   { background: #ffe0e8; color: #a0003a; border: 2px solid var(--red); }
+
+  /* Next button */
+  .next-btn {
+    display: none;
+    margin-top: 14px;
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 12px 28px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #7a3db8;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .next-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #7a3db8; }
+  .next-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #7a3db8; }
+  .next-btn.show { display: block; }
+
+  /* ── Drag & Drop ── */
+  .drag-instructions {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 12px;
+    background: #fff9e6;
+    border: 2px dashed var(--sun);
+    border-radius: 12px;
+    padding: 8px 12px;
+  }
+  .drag-area {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .drag-item {
+    background: #f0f4ff;
+    border: 3px solid #d0d8ff;
+    border-radius: 12px;
+    padding: 8px 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: grab;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .drag-item:hover { background: #e0e8ff; border-color: var(--purple); }
+  .drag-item.dragging { opacity: 0.4; }
+  .drop-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .drop-zone {
+    min-height: 90px;
+    border-radius: 16px;
+    border: 3px dashed #bbb;
+    padding: 10px;
+    background: #f8f8ff;
+    transition: all 0.2s;
+  }
+  .drop-zone.over { border-color: var(--purple); background: #f0eaff; }
+  .drop-zone-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    margin-bottom: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    display: inline-block;
+  }
+  .drop-zone-label.ok    { background: #d4fce8; color: #086b4a; }
+  .drop-zone-label.notok { background: #ffe0e8; color: #a0003a; }
+  .dropped-item {
+    display: inline-block;
+    margin: 3px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    background: #e8e8ff;
+    border: 2px solid #c0c0ff;
+    cursor: pointer;
+  }
+  .check-drag-btn {
+    background: var(--orange);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 10px 24px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.05rem;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #c77b00;
+    transition: all 0.15s;
+    margin-top: 6px;
+  }
+  .check-drag-btn:hover { transform: translateY(-2px); }
+
+  /* ── Password Challenge ── */
+  .password-rules {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .rule {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #555;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: #f5f5ff;
+    border: 2px solid #e0e0ff;
+    transition: all 0.3s;
+  }
+  .rule .rule-icon { font-size: 1.2rem; }
+  .rule.met { background: #d4fce8; border-color: var(--green); color: #086b4a; }
+  .password-input-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .password-input {
+    width: 100%;
+    padding: 14px 48px 14px 16px;
+    border-radius: 14px;
+    border: 3px solid #d0d8ff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--dark);
+    outline: none;
+    transition: border 0.2s;
+  }
+  .password-input:focus { border-color: var(--purple); }
+  .strength-bar-wrap {
+    height: 10px;
+    border-radius: 10px;
+    background: #e0e0e0;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .strength-bar {
+    height: 100%;
+    border-radius: 10px;
+    width: 0%;
+    transition: width 0.4s, background 0.4s;
+  }
+  .strength-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .submit-pwd-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 28px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #04a07a;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .submit-pwd-btn:hover { transform: translateY(-2px); }
+  .submit-pwd-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── Results ── */
+  #results {
+    display: none;
+    text-align: center;
+    animation: popIn 0.5s ease;
+  }
+  .results-card {
+    background: var(--card);
+    border-radius: 28px;
+    padding: 36px 28px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    border: 3px solid #ffffff;
+  }
+  .results-emoji {
+    font-size: 4rem;
+    margin-bottom: 10px;
+  }
+  .results-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: var(--dark);
+    text-shadow: 2px 2px 0 var(--sun);
+    margin-bottom: 8px;
+  }
+  .results-score {
+    font-size: 3rem;
+    font-family: 'Fredoka One', cursive;
+    color: var(--purple);
+    margin: 16px 0 8px;
+  }
+  .results-msg {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #555;
+    margin-bottom: 24px;
+  }
+  .results-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .summary-item {
+    background: #f5f5ff;
+    border-radius: 14px;
+    padding: 12px;
+    border: 2px solid #e0e0ff;
+  }
+  .summary-item .s-icon { font-size: 1.8rem; }
+  .summary-item .s-label { font-size: 0.8rem; font-weight: 700; color: #888; margin-top: 2px; }
+  .summary-item .s-val { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--dark); }
+  .restart-btn {
+    background: var(--sun);
+    color: var(--dark);
+    border: none;
+    border-radius: 16px;
+    padding: 14px 36px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #e5a800;
+    transition: all 0.15s;
+  }
+  .restart-btn:hover { transform: translateY(-3px); box-shadow: 0 7px 0 #e5a800; }
+  .confetti {
+    position: fixed;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+    pointer-events: none;
+    z-index: 999;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="clouds">
+  <div class="cloud" style="left:-200px"></div>
+  <div class="cloud" style="left:30%"></div>
+  <div class="cloud" style="left:70%"></div>
+</div>
+
+<!-- decorative stars -->
+<div class="star" style="top:15%;left:5%;animation-delay:0s">⭐</div>
+<div class="star" style="top:30%;right:4%;animation-delay:0.7s">✨</div>
+<div class="star" style="top:55%;left:3%;animation-delay:1.3s">⭐</div>
+
+<div id="app">
+  <header>
+    <div class="emoji-row">🛡️🌐🔐</div>
+    <h1>Cyber Heroes!</h1>
+    <p>Review game · 3EF AI Cybersecurity</p>
+  </header>
+
+  <div style="display:flex;align-items:center;justify-content:space-between;">
+    <div class="progress-label" id="prog-label">Question 1 of 9</div>
+    <div class="score-badge">⭐ <span id="score-display">0</span> pts</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar" id="progress-bar" style="width:11%"></div>
+  </div>
+
+  <div id="quiz-area"></div>
+  <div id="results">
+    <div class="results-card">
+      <div class="results-emoji" id="res-emoji">🏆</div>
+      <div class="results-title">You finished!</div>
+      <div class="results-score" id="res-score">0 / 900</div>
+      <div class="results-msg" id="res-msg">Great job, Cyber Hero!</div>
+      <div class="results-summary">
+        <div class="summary-item"><div class="s-icon">✅</div><div class="s-val" id="r-correct">0</div><div class="s-label">Correct</div></div>
+        <div class="summary-item"><div class="s-icon">❌</div><div class="s-val" id="r-wrong">0</div><div class="s-label">Wrong</div></div>
+        <div class="summary-item"><div class="s-icon">💪</div><div class="s-val" id="r-streak">0</div><div class="s-label">Best streak</div></div>
+        <div class="summary-item"><div class="s-icon">🔐</div><div class="s-val" id="r-pwd">—</div><div class="s-label">Your password</div></div>
+      </div>
+      <button class="restart-btn" onclick="restart()">🔄 Play Again!</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const questions = [
+  // LESSON 1 – Kind Kingdom
+  {
+    type: 'quiz',
+    lesson: 'Kind Kingdom 👑',
+    q: 'Which of these messages is kind online?',
+    opts: [
+      { text: '😊 "Great job! I loved your drawing!"', correct: true },
+      { text: '😤 "That drawing is so ugly."', correct: false },
+      { text: '😐 "Whatever, who cares."', correct: false },
+      { text: '😠 "You should stop trying."', correct: false }
+    ],
+    ok: '🎉 Yes! That's a kind and encouraging message!',
+    bad: '💛 Hmm, that one could hurt someone's feelings. Kindness makes everyone feel good!'
+  },
+  {
+    type: 'quiz',
+    lesson: 'Kind Kingdom 👑',
+    q: 'Empathy means:',
+    opts: [
+      { text: '🤔 Understanding how someone else feels', correct: true },
+      { text: '📱 Sending lots of messages', correct: false },
+      { text: '🎮 Winning a game online', correct: false },
+      { text: '🔒 Creating a password', correct: false }
+    ],
+    ok: '✨ Exactly! Empathy helps us be better friends online and offline!',
+    bad: '💛 Not quite! Empathy means putting yourself in someone else\'s shoes.'
+  },
+  // LESSON 2 – Reality River
+  {
+    type: 'quiz',
+    lesson: 'Reality River 🌊',
+    q: 'When you see news online, what should you ask first?',
+    opts: [
+      { text: '❤️ How many likes does it have?', correct: false },
+      { text: '🔍 Who wrote it and where is it from?', correct: true },
+      { text: '📤 How fast can I share it?', correct: false },
+      { text: '🎨 Does it have a nice picture?', correct: false }
+    ],
+    ok: '🕵️ Smart thinking! Always check the source before believing or sharing!',
+    bad: '🌊 Not quite! Always ask: Who wrote this? Where is it from? When?'
+  },
+  {
+    type: 'quiz',
+    lesson: 'Reality River 🌊',
+    q: 'Your friend shares a news story saying "Sharks can fly!" What do you do?',
+    opts: [
+      { text: '😱 Believe it immediately and share it everywhere!', correct: false },
+      { text: '🤔 Check if it's true before sharing', correct: true },
+      { text: '😴 Ignore all news forever', correct: false },
+      { text: '🤷 Share it just for fun — it doesn't matter', correct: false }
+    ],
+    ok: '🎯 Perfect! Always verify before sharing. Fake news spreads fast!',
+    bad: '🌊 Careful! Always check if something is true before sharing it.'
+  },
+  // LESSON 3 – Mindful Mountain (DRAG & DROP)
+  {
+    type: 'drag',
+    lesson: 'Mindful Mountain 🏔️',
+    q: 'Sort these into "OK to post" and "Too much to post":',
+    items: [
+      { id: 'd1', text: '🍕 Picture of your lunch', correct: 'ok' },
+      { id: 'd2', text: '🏠 Your home address', correct: 'notok' },
+      { id: 'd3', text: '🎨 A drawing you made', correct: 'ok' },
+      { id: 'd4', text: '🏫 School name + uniform photo', correct: 'notok' },
+      { id: 'd5', text: '😊 Selfie with friends', correct: 'ok' },
+      { id: 'd6', text: '📍 Your exact location right now', correct: 'notok' }
+    ]
+  },
+  // LESSON 3 – quiz
+  {
+    type: 'quiz',
+    lesson: 'Mindful Mountain 🏔️',
+    q: 'Why is it NOT OK to post your home address online?',
+    opts: [
+      { text: '🤷 It's too long to type', correct: false },
+      { text: '🛡️ Strangers could find where you live', correct: true },
+      { text: '📵 The internet is too slow', correct: false },
+      { text: '🎨 It's not interesting', correct: false }
+    ],
+    ok: '🛡️ Exactly! Sharing your address with strangers is not safe.',
+    bad: '🏔️ Think about it — who might see that information? Strangers could use it!'
+  },
+  // LESSON 4 – Tower of Treasure (quiz)
+  {
+    type: 'quiz',
+    lesson: 'Tower of Treasure 🏰',
+    q: 'Which password is the strongest?',
+    opts: [
+      { text: '🔑 123456', correct: false },
+      { text: '🔑 password', correct: false },
+      { text: '🔑 L0v3_PiZZa_2025!', correct: true },
+      { text: '🔑 maria2010', correct: false }
+    ],
+    ok: '🏆 Yes! It has a word, numbers AND a symbol — super strong!',
+    bad: '🔐 Not quite! The strongest password mixes words, numbers AND symbols.'
+  },
+  {
+    type: 'quiz',
+    lesson: 'Tower of Treasure 🏰',
+    q: 'A strong password must have:',
+    opts: [
+      { text: '📝 Only your name', correct: false },
+      { text: '🔐 A word/phrase + a number + a symbol', correct: true },
+      { text: '🔢 Only numbers', correct: false },
+      { text: '🔤 Only letters', correct: false }
+    ],
+    ok: '🌟 Brilliant! Mix it all together for a super password!',
+    bad: '🏰 Remember: a great password has a word or phrase, a number AND a symbol!'
+  },
+  // FINAL – Password challenge
+  {
+    type: 'password',
+    lesson: 'Create Your Password! 🔐',
+    q: 'Time to be a password hero! Create a STRONG password.'
+  }
+];
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let current = 0;
+let score = 0;
+let correct = 0;
+let wrong = 0;
+let streak = 0;
+let bestStreak = 0;
+let playerPassword = '';
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function render() {
+  const q = questions[current];
+  updateProgress();
+  if (q.type === 'quiz')     renderQuiz(q);
+  else if (q.type === 'drag') renderDrag(q);
+  else if (q.type === 'password') renderPassword(q);
+}
+
+function updateProgress() {
+  const pct = ((current + 1) / questions.length) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('prog-label').textContent = `Question ${current + 1} of ${questions.length}`;
+  document.getElementById('score-display').textContent = score;
+}
+
+// ── Quiz ──────────────────────────────────────────────────────────────────────
+function renderQuiz(q) {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = `
+    <div class="section-label">🎮 ${q.lesson}</div>
+    <div class="card">
+      <div class="question-num">Question ${current + 1}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQ()">Next ➜</button>
+    </div>`;
+
+  const opts = document.getElementById('options');
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((o, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="opt-icon">${letters[i]}</span> ${o.text}`;
+    btn.onclick = () => selectAnswer(o, btn, q);
+    opts.appendChild(btn);
+  });
+}
+
+function selectAnswer(opt, btn, q) {
+  document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('feedback');
+  if (opt.correct) {
+    btn.classList.add('correct');
+    fb.className = 'feedback correct show';
+    fb.innerHTML = `✅ ${q.ok}`;
+    score += 100; correct++; streak++;
+    if (streak > bestStreak) bestStreak = streak;
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'feedback wrong show';
+    fb.innerHTML = `❌ ${q.bad}`;
+    wrong++; streak = 0;
+    // highlight correct
+    document.querySelectorAll('.option-btn').forEach(b => {
+      if (b.innerHTML.includes(q.opts.find(o => o.correct).text)) b.classList.add('correct');
+    });
+  }
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('next-btn').classList.add('show');
+}
+
+// ── Drag & Drop ───────────────────────────────────────────────────────────────
+function renderDrag(q) {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = `
+    <div class="section-label">🏔️ ${q.lesson}</div>
+    <div class="card">
+      <div class="question-num">Question ${current + 1}</div>
+      <div class="question-text">${q.q}</div>
+      <div class="drag-instructions">💡 Drag each card to the correct box. Click a placed card to remove it.</div>
+      <div class="drag-area" id="drag-pool"></div>
+      <div class="drop-columns">
+        <div>
+          <div class="drop-zone-label ok">✅ OK to post</div>
+          <div class="drop-zone" id="zone-ok" data-zone="ok"></div>
+        </div>
+        <div>
+          <div class="drop-zone-label notok">❌ Too much!</div>
+          <div class="drop-zone" id="zone-notok" data-zone="notok"></div>
+        </div>
+      </div>
+      <button class="check-drag-btn" onclick="checkDrag()" id="check-drag">Check! 🔍</button>
+      <div class="feedback" id="feedback"></div>
+      <button class="next-btn" id="next-btn" onclick="nextQ()">Next ➜</button>
+    </div>`;
+
+  const pool = document.getElementById('drag-pool');
+  q.items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'drag-item';
+    el.id = item.id;
+    el.textContent = item.text;
+    el.draggable = true;
+    el.addEventListener('dragstart', e => { e.dataTransfer.setData('text', item.id); el.classList.add('dragging'); });
+    el.addEventListener('dragend', () => el.classList.remove('dragging'));
+    pool.appendChild(el);
+  });
+
+  ['zone-ok','zone-notok'].forEach(zid => {
+    const zone = document.getElementById(zid);
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('over');
+      const id = e.dataTransfer.getData('text');
+      const dragEl = document.getElementById(id);
+      if (!dragEl) return;
+      dragEl.remove();
+      const dropped = document.createElement('div');
+      dropped.className = 'dropped-item';
+      dropped.textContent = q.items.find(i => i.id === id).text;
+      dropped.dataset.id = id;
+      dropped.title = 'Click to remove';
+      dropped.onclick = () => { dropped.remove(); document.getElementById('drag-pool').appendChild(dragEl); };
+      zone.appendChild(dropped);
+    });
+  });
+}
+
+function checkDrag() {
+  const q = questions[current];
+  let allCorrect = true;
+  ['ok','notok'].forEach(zone => {
+    document.querySelectorAll(`#zone-${zone} .dropped-item`).forEach(el => {
+      const item = q.items.find(i => i.id === el.dataset.id);
+      if (item.correct !== zone) allCorrect = false;
+    });
+  });
+  // check all placed
+  const placedCount = document.querySelectorAll('.dropped-item').length;
+  if (placedCount < q.items.length) {
+    const fb = document.getElementById('feedback');
+    fb.className = 'feedback wrong show';
+    fb.innerHTML = '⚠️ Place all cards before checking!';
+    return;
+  }
+  const fb = document.getElementById('feedback');
+  document.getElementById('check-drag').disabled = true;
+  if (allCorrect) {
+    fb.className = 'feedback correct show';
+    fb.innerHTML = '🎉 Amazing! You sorted them all correctly!';
+    score += 100; correct++; streak++;
+    if (streak > bestStreak) bestStreak = streak;
+  } else {
+    fb.className = 'feedback wrong show';
+    fb.innerHTML = '❌ Not all correct! Review where each belongs.';
+    wrong++; streak = 0;
+  }
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('next-btn').classList.add('show');
+}
+
+// ── Password ──────────────────────────────────────────────────────────────────
+function renderPassword(q) {
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = `
+    <div class="section-label">🔐 ${q.lesson}</div>
+    <div class="card">
+      <div class="question-num">Final Challenge!</div>
+      <div class="question-text">${q.q}</div>
+      <div class="password-rules" id="pwd-rules">
+        <div class="rule" id="r-word"><span class="rule-icon">📝</span> Has a word or phrase</div>
+        <div class="rule" id="r-num"><span class="rule-icon">🔢</span> Has a number (0–9)</div>
+        <div class="rule" id="r-sym"><span class="rule-icon">💥</span> Has a symbol (!@#$%&*_)</div>
+        <div class="rule" id="r-len"><span class="rule-icon">📏</span> At least 8 characters long</div>
+      </div>
+      <div class="password-input-wrap">
+        <input class="password-input" id="pwd-input" type="text" placeholder="Type your password here..." oninput="evalPwd()" maxlength="30" autocomplete="off"/>
+      </div>
+      <div class="strength-bar-wrap"><div class="strength-bar" id="str-bar"></div></div>
+      <div class="strength-label" id="str-label">🔓 Start typing…</div>
+      <button class="submit-pwd-btn" id="submit-pwd" onclick="submitPwd()" disabled>Submit my password! 🚀</button>
+      <div class="feedback" id="feedback"></div>
+    </div>`;
+}
+
+function evalPwd() {
+  const val = document.getElementById('pwd-input').value;
+  const hasWord = /[a-zA-Z]{2,}/.test(val);
+  const hasNum  = /\d/.test(val);
+  const hasSym  = /[!@#$%&*_\-+=?]/.test(val);
+  const hasLen  = val.length >= 8;
+  toggle('r-word', hasWord);
+  toggle('r-num', hasNum);
+  toggle('r-sym', hasSym);
+  toggle('r-len', hasLen);
+  const met = [hasWord, hasNum, hasSym, hasLen].filter(Boolean).length;
+  const bar = document.getElementById('str-bar');
+  const lbl = document.getElementById('str-label');
+  const pct = (met / 4) * 100;
+  bar.style.width = pct + '%';
+  const colors = ['#EF476F','#FF9F1C','#FFD166','#06D6A0'];
+  const labels = ['🔓 Very weak','🔓 Getting there…','🔒 Almost strong!','🔐 Super strong! 💪'];
+  bar.style.background = colors[Math.max(met - 1, 0)];
+  lbl.textContent = met === 0 ? '🔓 Start typing…' : labels[met - 1];
+  document.getElementById('submit-pwd').disabled = met < 4;
+}
+
+function toggle(id, on) {
+  const el = document.getElementById(id);
+  if (on) el.classList.add('met'); else el.classList.remove('met');
+}
+
+function submitPwd() {
+  playerPassword = document.getElementById('pwd-input').value;
+  score += 100; correct++; streak++;
+  if (streak > bestStreak) bestStreak = streak;
+  document.getElementById('score-display').textContent = score;
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback correct show';
+  fb.innerHTML = `🏆 Awesome password, Cyber Hero! Now don't share it with anyone! 🤫`;
+  document.getElementById('submit-pwd').disabled = true;
+  document.getElementById('pwd-input').disabled = true;
+  setTimeout(showResults, 1800);
+}
+
+// ─── NAVIGATION ───────────────────────────────────────────────────────────────
+function nextQ() {
+  current++;
+  if (current >= questions.length) { showResults(); return; }
+  render();
+}
+
+function showResults() {
+  document.getElementById('quiz-area').style.display = 'none';
+  const res = document.getElementById('results');
+  res.style.display = 'block';
+  document.getElementById('prog-label').textContent = 'Finished! 🎉';
+  document.getElementById('progress-bar').style.width = '100%';
+  document.getElementById('score-display').textContent = score;
+  document.getElementById('res-score').textContent = `${score} / ${questions.length * 100}`;
+  document.getElementById('r-correct').textContent = correct;
+  document.getElementById('r-wrong').textContent = wrong;
+  document.getElementById('r-streak').textContent = bestStreak;
+  document.getElementById('r-pwd').textContent = playerPassword || '—';
+  const pct = score / (questions.length * 100);
+  let emoji = '⭐', msg = 'Keep practicing, you can do it!';
+  if (pct >= 0.9) { emoji = '🏆'; msg = 'You\'re a true Cyber Hero! Amazing!'; }
+  else if (pct >= 0.7) { emoji = '🌟'; msg = 'Great job! Almost perfect!'; }
+  else if (pct >= 0.5) { emoji = '😊'; msg = 'Good effort! Review and try again!'; }
+  document.getElementById('res-emoji').textContent = emoji;
+  document.getElementById('res-msg').textContent = msg;
+  if (pct >= 0.7) launchConfetti();
+}
+
+function restart() {
+  current = 0; score = 0; correct = 0; wrong = 0; streak = 0; bestStreak = 0; playerPassword = '';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  render();
+}
+
+// ─── CONFETTI ─────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const colors = ['#FFD166','#06D6A0','#9B5DE5','#EF476F','#7EC8E3','#FF9F1C'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.left = Math.random() * 100 + 'vw';
+      c.style.background = colors[Math.floor(Math.random() * colors.length)];
+      c.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+      c.style.animationDelay = Math.random() * 0.5 + 's';
+      c.style.width = c.style.height = (8 + Math.random() * 8) + 'px';
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 4000);
+    }, i * 40);
+  }
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
